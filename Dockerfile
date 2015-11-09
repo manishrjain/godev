@@ -31,16 +31,23 @@ RUN pip install ipython
 COPY bashrc /root/.bashrc
 
 RUN mkdir /installs
-# Install Golang1.4.2
+# Install Golang1.5.1
 RUN cd /installs && \
-wget https://storage.googleapis.com/golang/go1.4.2.src.tar.gz && tar -xzvf go1.4.2.src.tar.gz && \
-cd go/src && ./all.bash
+wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.5.1.linux-amd64.tar.gz
 
 # Golang App Engine SDK
 RUN cd /installs && /usr/bin/env python -V 2>&1 | grep 2.7 && \
 wget https://storage.googleapis.com/appengine-sdks/featured/go_appengine_sdk_linux_amd64-1.9.25.zip && \
 unzip go_appengine_sdk_linux_amd64-1.9.25.zip
- 
+
+ENV GOPATH /go
+ENV GOBIN /go/bin
+ENV PATH /usr/local/go/bin:/go/bin:/installs/go_appengine:$PATH
+ENV HOME /root
+WORKDIR /go/src
+
+RUN go version | grep go1.5
+
 # OPTIONAL: Compile vim from scratch if need be. Vim installed via apt-get as above, already comes with python interpreter, which is required by YouCompleteMe vim plugin.
 # RUN hg clone https://vim.googlecode.com/hg/ /root/vim
 # RUN cd /root/vim && \
@@ -71,12 +78,6 @@ RUN cd /root/.vim/bundle/YouCompleteMe && git submodule update --init --recursiv
 # Following is NOT RECOMMENDED:
 # RUN cd /go/src && git clone git@bitbucket.org:username/repo.git
 RUN git config --global credential.helper 'cache --timeout=86400'
-
-ENV GOPATH /go
-ENV GOBIN /go/bin
-ENV PATH /installs/go/bin:/go/bin:/installs/go_appengine:$PATH
-ENV HOME /root
-WORKDIR /go/src
 
 # VIM
 COPY vimrc /root/.vimrc
